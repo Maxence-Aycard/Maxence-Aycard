@@ -1,0 +1,20 @@
+fonction tri_topologique(graphe):
+    ordre_topologique = liste vide
+    file = nouvelle file
+
+    pour chaque noeud dans graphe:
+        si noeud.nbre_prédécesseurs == 0:
+            file.ajouter(noeud)
+
+    tant que file n'est pas vide:
+        noeud = file.retirer()
+        ordre_topologique.ajouter(noeud)
+        pour voisin dans noeud.voisins:
+            supprimer_arête(noeud, voisin)
+            si voisin.nbre_prédécesseurs == 0:
+                file.ajouter(voisin)
+
+    si taille(ordre_topologique) == nombre_noeuds(graphe):
+        retourner ordre_topologique
+    sinon:
+        erreur "Le graphe contient un ou plusieurs cycles"
