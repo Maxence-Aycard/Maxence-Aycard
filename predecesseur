@@ -1,0 +1,20 @@
+intro du predecesseur:
+Tout d'abord notre graphe ne doit pas comporter de cycle, sinon il y aura un problème car nous allons réaliser un tri topologique qui se rapproche fortement d'un BFS.
+
+Identification des noeuds sans prédécesseurs :
+
+On parcourt tous les noeuds et on identifie ceux qui n'ont pas de prédécesseurs (pas d'arêtes entrantes). Ces nœuds peuvent être traités immédiatement car aucune autre tâche ne doit être effectuée avant eux, 
+c'est à dire qui seront nos premières tâches à effectuer. Et on pourra les relier à une station.
+
+Création d'une File d'Attente :
+Placez tous les nœuds sans prédécesseurs dans une file d'attente avec un bfs (ou une pile en utilisant un dfs).
+Traitement des Nœuds :
+On doit vérifier que la file ne soit pas vide donc tant qu'elle n'est pas vide, on doit :
+On retire un noeud de la file d'attente. C'est le noeud qu'on peut traiter ensuite dans l'ordre topologique.
+Pour chaque noeud voisin direct (toutes les opérations qui suivent directement la tâche actuelle), retirez l'arête qui les relie.
+Si un voisin direct n'a plus d'autres prédécesseurs, ajoutez-le à la file d'attente.
+
+Validation :
+
+Si, à la fin du processus, tous les noeuds ont été visités, alors on a un ordre topologique valide.
+Si des noeuds restent non visités et que la file d'attente est vide, cela signifie que le graphe n'est pas acyclique et qu'il existe des cycles.
