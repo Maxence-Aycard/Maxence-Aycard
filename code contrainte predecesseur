@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define NB_MAX_NOEUDS 100 // Ajustez cette valeur selon les besoins de votre graphe
+
+int nbNoeuds = 0; // Numéro du noeud le plus élevé dans le graphe
+int matAdj[NB_MAX_NOEUDS][NB_MAX_NOEUDS]; // Matrice d'adjacence pour stocker les arêtes
+int degreEntrant[NB_MAX_NOEUDS]; // Tableau pour stocker le degré entrant de chaque noeud
+int fileAttente[NB_MAX_NOEUDS]; // File d'attente pour stocker les noeuds avec un degré entrant de 0
+
+// Lit le graphe à partir d'un fichier et construit la matrice d'adjacence et le tableau de degré entrant
+void lireGrapheDepuisFichier(const char *nomFichier) {
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        perror("Erreur lors de l'ouverture du fichier");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialise toutes les valeurs de degreEntrant à -1 pour indiquer que les noeuds ne sont pas présents
+    for (int i = 0; i < NB_MAX_NOEUDS; i++) {
+        degreEntrant[i] = -1;
+    }
+
+    int de, vers;
+    while (fscanf(fichier, "%d %d", &de, &vers) == 2) {
+        if (degreEntrant[de] == -1) degreEntrant[de] = 0; // Le noeud 'de' est présent, on met son degré entrant à 0
+        if (degreEntrant[vers] == -1) degreEntrant[vers] = 0; // Le noeud 'vers' est présent, on met son degré entrant à 0
+        matAdj[de][vers] = 1;
+        degreEntrant[vers]++;
+        if (de > nbNoeuds) nbNoeuds = de; // Mise à jour du numéro du noeud le plus élevé
+        if (vers > nbNoeuds) nbNoeuds = vers;
+    }
+
+    fclose(fichier);
+}
+
+// Effectue le tri topologique sur le graphe
+void triTopologique() {
+    int debut = 0, fin = -1;
+    int compte = 0; // Compteur de noeuds traités
+    int ordre[NB_MAX_NOEUDS]; // Tableau pour stocker l'ordre topologique
+
+    // Initialise le tableau ordre à -1
+    for (int i = 0; i < NB_MAX_NOEUDS; i++) {
+        ordre[i] = -1;
+    }
+
+    // Enfile tous les noeuds avec un degré entrant de 0 qui font partie du graphe
+    for (int i = 1; i <= nbNoeuds; i++) {
+        if (degreEntrant[i] == 0) {
+            fileAttente[++fin] = i;
+        }
+    }
+
+    // Traite les noeuds dans l'ordre topologique
+    while (debut <= fin) {
+        int courant = fileAttente[debut++]; // Défile un noeud
+        ordre[compte++] = courant; // Inclut dans l'ordre topologique
+
+        // Diminue le degré entrant de tous les noeuds adjacents
+        for (int i = 1; i <= nbNoeuds; i++) {
+            if (matAdj[courant][i] == 1) {
+                if (--degreEntrant[i] == 0) {
+                    fileAttente[++fin] = i;
+                }
+            }
+        }
+    }
+
+    // Imprime l'ordre topologique
+    for (int i = 0; i < compte; i++) {
+        if (ordre[i] != -1) { // Vérifie la valeur initialisée
+            printf("%d ", ordre[i]);
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    // Initialise la matrice d'adjacence et le tableau de degré entrant
+    for (int i = 0; i < NB_MAX_NOEUDS; i++) {
+        degreEntrant[i] = -1; // Met tous les degrés entrants à -1 pour indiquer la non-existence
+        for (int j = 0; j < NB_MAX_NOEUDS; j++) {
+            matAdj[i][j] = 0;
+        }
+    }
+
+    lireGrapheDepuisFichier("precedence.txt"); // Remplacez par le chemin réel vers votre fichier
+    triTopologique();
+
+    return 0;
+}
