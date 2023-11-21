@@ -1,0 +1,19 @@
+DTI: contrainte de précédence
+Données
+1. Liste des noeuds du graphe
+2. Liste des arêtes du graphe
+
+Traitement
+1. Initialiser la liste ordre topologique et la file file.
+2. Remplir la file avec les nœuds sans précédent.
+3. Tant que la file n'est pas vide
+a. Retirer un noeud de la file
+b. Ajouter ce nœud à ordre topologique.
+c. Pour chaque voisin du nœud retiré, supprimer l'arête et vérifier le nombre de prédécesseurs. Ajouter le voisin à la file si nécessaire.
+4. Vérifier si tous les nœuds ont été visités pour confirmer l'absence de cycles.
+
+Interface
+1. L'ordre topologique des noeuds (si l'algorithme se termine avec succès)
+2. Message d'erreur si un cycle est détecté ou si des noeuds sont isolés
+
+
