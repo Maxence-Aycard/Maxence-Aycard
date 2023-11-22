@@ -1,0 +1,54 @@
+#include <stdio.h>
+
+#define MAX_OPERATIONS 100
+
+// Structure représentant une opération du diagramme de Pert
+struct Operation {
+    int numero;
+    double duree;
+};
+
+int main() {
+    // Lire le temps à ne pas dépasser depuis temps_cycle.txt
+    FILE *tempsCycleFile = fopen("temps_cycle.txt", "r");
+    if (tempsCycleFile == NULL) {
+        perror("Erreur lors de la lecture du fichier temps_cycle.txt");
+        return 1;
+    }
+
+    double tempsCycle;
+    fscanf(tempsCycleFile, "%lf", &tempsCycle);
+    fclose(tempsCycleFile);
+
+    // Lire les opérations depuis operation.txt
+    FILE *operationsFile = fopen("operation.txt", "r");
+    if (operationsFile == NULL) {
+        perror("Erreur lors de la lecture du fichier operation.txt");
+        return 1;
+    }
+
+    // Structure pour stocker les opérations
+    struct Operation operations[MAX_OPERATIONS];
+    int nombreOperations = 0;
+
+    while (fscanf(operationsFile, "%d %lf", &operations[nombreOperations].numero, &operations[nombreOperations].duree) == 2) {
+        nombreOperations++;
+    }
+
+    fclose(operationsFile);
+
+    // Calculer la durée totale des opérations affectées à la station de travail
+    double dureeTotale = 0;
+    for (int i = 0; i < nombreOperations; i++) {
+        dureeTotale += operations[i].duree;
+    }
+
+    // Comparer la durée totale avec le temps à ne pas dépasser
+    if (dureeTotale <= tempsCycle) {
+        printf("Les operation peuvent etre execute dans le temps imparti.\n");
+    } else {
+        printf("Les operation ne peuvent pas etre executees dans le temps imparti.\n");
+    }
+
+    return 0;
+}
