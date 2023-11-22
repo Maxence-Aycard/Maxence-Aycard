@@ -1,0 +1,34 @@
+#include <stdio.h>
+
+int main() {
+    FILE *fichier;
+    char ligne[100];
+    int operation;
+    float temps;
+    float temps_total = 0.0;
+
+    // Ouvre le fichier
+    fichier = fopen("operation.txt", "r");
+
+    if (fichier == NULL) {
+        printf("Impossible d'ouvrir le fichier.\n");
+        return -1;
+    }
+
+    // Lit chaque ligne du fichier
+    while (fgets(ligne, sizeof(ligne), fichier)) {
+        // Analyse chaque ligne pour obtenir l'opération et le temps
+        sscanf(ligne, "%d %f", &operation, &temps);
+
+        // Ajoute le temps au temps total
+        temps_total += temps;
+    }
+
+    // Ferme le fichier
+    fclose(fichier);
+
+    // Affiche le temps total
+    printf("Le temps total des operations est : %.2f\n", temps_total);
+
+    return 0;
+}
