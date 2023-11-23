@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Structure pour représenter une tâche
+typedef struct {
+    int id;
+    char nom[50];
+    int temps_optimiste;
+    int temps_pessimiste;
+    int temps_probable;
+    int duree;
+    int date_debut_au_plus_tot;
+    int date_debut_au_plus_tard;
+} Tache;
+
+// Fonction pour calculer les dates au plus tôt
+void calculerDatesAuPlusTot(Tache* taches, int nombre_taches, int* dependances) {
+    for (int i = 0; i < nombre_taches; i++) {
+        int somme_dates_debut = 0;
+        for (int j = 0; j < nombre_taches; j++) {
+            if (dependances[j * nombre_taches + i] == 1) {
+                somme_dates_debut += taches[j].date_debut_au_plus_tot + taches[j].duree;
+            }
+        }
+        taches[i].date_debut_au_plus_tot = somme_dates_debut;
+    }
+}
+
+// Fonction pour calculer les dates au plus tard
+void calculerDatesAuPlusTard(Tache* taches, int nombre_taches, int* dependances) {
+    for (int i = nombre_taches - 1; i >= 0; i--) {
+        int date_fin_au_plus_tard = taches[nombre_taches - 1].date_debut_au_plus_tot;
+        for (int j = 0; j < nombre_taches; j++) {
+            if (dependances[i * nombre_taches + j] == 1) {
+                int date_fin_tache_suivante = taches[j].date_debut_au_plus_tard;
+                if (date_fin_tache_suivante < date_fin_au_plus_tard) {
+                    date_fin_au_plus_tard = date_fin_tache_suivante;
+                }
+            }
+        }
+        taches[i].date_debut_au_plus_tard = date_fin_au_plus_tard - taches[i].duree;
+    }
+}
+
+int main() {
+    int nombre_taches = 5;
+
+    // Définir les tâches, les temps optimistes, pessimistes et probables
+    Tache taches[] = {
+        {1, "Tache A", 2, 4, 3, 0, 0, 0},
+        {2, "Tache B", 3, 6, 4, 0, 0, 0},
+        {3, "Tache C", 1, 3, 2, 0, 0, 0},
+        {4, "Tache D", 4, 7, 5, 0, 0, 0},
+        {5, "Tache E", 2, 5, 3, 0, 0, 0}
+    };
+
+    // Définir les dépendances entre les tâches (matrice d'adjacence)
+    // Exemple: Tache A dépend de Tache C
+    int dependances[] = {
+        0, 1, 0, 0, 0,
+        0, 0, 1, 1, 0,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 0, 0
+    };
+
+    // Calculer les dates au plus tôt
+    calculerDatesAuPlusTot(taches, nombre_taches, dependances);
+
+    // Calculer les dates au plus tard
+    calculerDatesAuPlusTard(taches, nombre_taches, dependances);
+
+    // Afficher les résultats
+    printf("ID\tNom\tOptimiste\tPessimiste\tProbable\tDuree\tAuPlusTot\tAuPlusTard\n");
+    for (int i = 0; i < nombre_taches; i++) {
+        printf("%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\n", taches[i].id, taches[i].nom,
+               taches[i].temps_optimiste, taches[i].temps_pessimiste, taches[i].temps_probable,
+               taches[i].duree, taches[i].date_debut_au_plus_tot, taches[i].date_debut_au_plus_tard);
+    }
+
+    return 0;
+}
