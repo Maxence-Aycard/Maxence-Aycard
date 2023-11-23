@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Structure pour représenter une tâche
+typedef struct {
+    char nom[50];
+    int duree;
+    int auPlusTot;
+    int auPlusTard;
+} Tache;
+
+// Structure pour représenter un nœud dans le graphe
+typedef struct Node {
+    int tache;
+    struct Node* suivant;
+} Node;
+
+// Structure pour représenter une liste d'adjacence
+typedef struct {
+    Node* tachesAdjacentes;
+} ListeAdjacence;
+
+// Fonction pour ajouter une arête au graphe
+void ajouterArete(ListeAdjacence* graphe, int source, int destination) {
+    Node* nouveauNode = (Node*)malloc(sizeof(Node));
+    nouveauNode->tache = destination;
+    nouveauNode->suivant = graphe[source].tachesAdjacentes;
+    graphe[source].tachesAdjacentes = nouveauNode;
+}
+
+// Fonction pour calculer les dates au plus tôt
+void calculerDatesAuPlusTot(ListeAdjacence* graphe, Tache* taches, int tacheCourante) {
+    Node* voisin = graphe[tacheCourante].tachesAdjacentes;
+    while (voisin != NULL) {
+        int tacheVoisine = voisin->tache;
+        calculerDatesAuPlusTot(graphe, taches, tacheVoisine);
+        if (taches[tacheCourante].auPlusTot < taches[tacheVoisine].auPlusTot + taches[tacheVoisine].duree) {
+            taches[tacheCourante].auPlusTot = taches[tacheVoisine].auPlusTot + taches[tacheVoisine].duree;
+        }
+        voisin = voisin->suivant;
+    }
+}
+
+// Fonction pour calculer les dates au plus tard
+void calculerDatesAuPlusTard(ListeAdjacence* graphe, Tache* taches, int tacheCourante) {
+    if (graphe[tacheCourante].tachesAdjacentes == NULL) {
+        taches[tacheCourante].auPlusTard = taches[tacheCourante].auPlusTot;
+    } else {
+        Node* voisin = graphe[tacheCourante].tachesAdjacentes;
+        while (voisin != NULL) {
+            int tacheVoisine = voisin->tache;
+            if (taches[tacheVoisine].auPlusTard - taches[tacheCourante].duree < taches[tacheCourante].auPlusTard) {
+                taches[tacheCourante].auPlusTard = taches[tacheVoisine].auPlusTard - taches[tacheCourante].duree;
+            }
+            voisin = voisin->suivant;
+        }
+    }
+
+    Node* voisin = graphe[tacheCourante].tachesAdjacentes;
+    while (voisin != NULL) {
+        int tacheVoisine = voisin->tache;
+        calculerDatesAuPlusTard(graphe, taches, tacheVoisine);
+        voisin = voisin->suivant;
+    }
+}
+
+int main() {
+    int nombre_taches = 5;
+
+    // Définir les tâches et les durées
+    Tache taches[] = {
+        {"Tache A", 2, 0, 0},
+        {"Tache B", 3, 0, 0},
+        {"Tache C", 1, 0, 0},
+        {"Tache D", 4, 0, 0},
+        {"Tache E", 2, 0, 0}
+    };
+
+    // Définir les dépendances entre les tâches (liste d'adjacence)
+    ListeAdjacence* graphe = (ListeAdjacence*)malloc(nombre_taches * sizeof(ListeAdjacence));
+    for (int i = 0; i < nombre_taches; i++) {
+        graphe[i].tachesAdjacentes = NULL;
+    }
+
+    ajouterArete(graphe, 0, 1);  // Tache A dépend de Tache B
+    ajouterArete(graphe, 0, 2);  // Tache A dépend de Tache C
+    ajouterArete(graphe, 1, 3);  // Tache B dépend de Tache D
+    ajouterArete(graphe, 2, 4);  // Tache C dépend de Tache E
+
+    // Calculer les dates au plus tôt
+    for (int i = 0; i < nombre_taches; i++) {
+        calculerDatesAuPlusTot(graphe, taches, i);
+    }
+
+    // Calculer les dates au plus tard
+    for (int i = nombre_taches - 1; i >= 0; i--) {
+        calculerDatesAuPlusTard(graphe, taches, i);
+    }
+
+    // Afficher les résultats
+    printf("Tache\tDuree\tAuPlusTot\tAuPlusTard\n");
+    for (int i = 0; i < nombre_taches; i++) {
+        printf("%s\t%d\t%d\t%d\n", taches[i].nom, taches[i].duree, taches[i].auPlusTot, taches[i].auPlusTard);
+    }
+
+    return 0;
+}
