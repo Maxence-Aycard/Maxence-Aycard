@@ -1,0 +1,15 @@
+On a implémenter un algorithme d'ordonnancement qui tient compte de deux types de contraintes : les contraintes de précédence et les contraintes d'exclusion.
+Initialisation :
+Les matrices et les tableaux sont initialisés pour s'assurer qu'ils ne contiennent pas de données résiduelles qui pourraient fausser le résultat.
+Lecture des Contraintes de Précédence :
+Le fichier contenant les contraintes de précédence est lu pour construire la matrice d'adjacence adj. Cette matrice indique quelles opérations doivent précéder d'autres opérations. Le degré entrant de chaque opération est également mis à jour pour indiquer combien d'opérations doivent être réalisées avant elle.
+Tri Topologique :
+Cette étape détermine un ordre possible dans lequel les opérations peuvent être exécutées sans violer les contraintes de précédence. Le tri topologique est utilisé pour les graphes dirigés acycliques (DAG) pour ordonner les nœuds de manière linéaire selon ces contraintes. Cela est fait en sélectionnant les nœuds avec un degré entrant de zéro (ce qui signifie qu'aucune autre opération n'a besoin de précéder celle-ci) et en les retirant du graphe, ce qui peut potentiellement réduire le degré entrant d'autres nœuds à zéro.
+Lecture des Contraintes d'Exclusion :
+Les contraintes d'exclusion sont lues à partir d'un autre fichier et stockées dans une matrice séparée graph. Ces contraintes spécifient les paires d'opérations qui ne peuvent pas être effectuées sur la même station de travail.
+Assignation des Stations :
+La fonction assignStations() assigne chaque opération à une station de travail. Elle itère sur les opérations dans l'ordre topologique et vérifie pour chaque station si l'opération en cours peut être assignée à celle-ci en respectant les contraintes d'exclusion et de précédence. Si aucune station existante ne peut accueillir l'opération sans violer les contraintes, une nouvelle station est créée.
+Affichage des Résultats :
+Le nombre total de stations nécessaires est affiché, suivi des assignations de chaque opération à sa station respective.
+Dans cet algorithme, les contraintes de précédence sont gérées par le tri topologique, qui assure qu'aucune opération n'est planifiée avant une opération qui doit la précéder. Les contraintes d'exclusion sont gérées en vérifiant les stations existantes pour s'assurer qu'aucune paire d'opérations qui s'excluent mutuellement n'est assignée à la même station.
+
