@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define OPMAX 36 // Nous supposerons qu'il y a jusqu'à 35 opérations
+
+int graphe[OPMAX][OPMAX];
+int visite[OPMAX];
+int station[OPMAX];
+int operationexist[OPMAX];
+
+void initialiserGetS() {
+    memset(graphe, 0, sizeof(graphe));
+    memset(visite, 0, sizeof(visite));
+    memset(station, 0, sizeof(station));
+    memset(operationexist, 0, sizeof(operationexist)); // Initialiser tous les indicateurs d'existence d'opération à 0
+}
+
+void ajoutExclusion(int op1, int op2) {
+    graphe[op1][op2] = 1;
+    graphe[op2][op1] = 1; // Le graphee est non orienté et 0 pour orienté
+    operationexist[op1] = 1; // Ca Marque l'opération comme existante
+    operationexist[op2] = 1; // Ca Marque l'opération comme existante
+}
+
+int ValideAssignation(int op, int st) {
+    for (int i = 1; i < OPMAX; i++) {
+        if (station[i] == st && graphe[op][i]) {
+            return 0; // on ne peut pas être assignée à cause de la contrainte d'exclusion donné
+        }
+    }
+    return 1; // Peut être assignée car pas de contraijnte
+}
+
+void dfs(int SommetActuel, int StationActuel) {
+    visite[SommetActuel] = 1;
+    station[SommetActuel] = StationActuel;
+    printf("Operation %d is assigned to station %d\n", SommetActuel, StationActuel);
+
+    for (int i = 1; i < OPMAX; i++) {
+        if (operationexist[i] && !visite[i] && ValideAssignation(i, StationActuel)) {
+            dfs(i, StationActuel);
+        }
+    }
+}
+
+int main() {
+    FILE *file;
+    int op1, op2;
+
+    file = fopen("exclusions.txt", "r");
+    if (file == NULL) {
+        perror("Erreur ouverture");
+        return EXIT_FAILURE;
+    }
+
+    initialiserGetS();
+
+    while (fscanf(file, "%d  %d", &op1,  &op2) == 2) {
+        ajoutExclusion(op1, op2);
+    }
+
+    fclose(file);
+
+    int StationActuel = 1;
+    for (int i = 1; i < OPMAX; i++) {
+        if (operationexist[i] && !visite[i]) {
+            dfs(i, StationActuel);
+            StationActuel++;
+        }
+    }
+
+    printf("Nombre de station nécessaire est: %d\n", StationActuel - 1);// On fait -1 car on rappelle qu'on a fixer max opération à 36 au lieu de 35
+
+    return EXIT_SUCCESS;
