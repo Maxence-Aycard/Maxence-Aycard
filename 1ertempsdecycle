@@ -7,7 +7,6 @@ int main() {
     float temps;
     float temps_total = 0.0;
 
-    // Ouvre le fichier
     fichier = fopen("operation.txt", "r");
 
     if (fichier == NULL) {
@@ -15,20 +14,17 @@ int main() {
         return -1;
     }
 
-    // Lit chaque ligne du fichier
     while (fgets(ligne, sizeof(ligne), fichier)) {
-        // Analyse chaque ligne pour obtenir l'opération et le temps
-        sscanf(ligne, "%d %f", &operation, &temps);
-
-        // Ajoute le temps au temps total
-        temps_total += temps;
+        if (sscanf(ligne, "%d %f", &operation, &temps) == 2) {
+            temps_total += temps;
+        } else {
+            printf("Erreur de lecture de la ligne : %s\n", ligne);
+        }
     }
 
-    // Ferme le fichier
     fclose(fichier);
 
-    // Affiche le temps total
-    printf("Le temps total des operations est : %.2f\n", temps_total);
+    printf("Le temps total des opérations est : %.2f\n", temps_total);
 
     return 0;
 }
