@@ -1,0 +1,34 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_OPERATIONS 36 // Nous supposerons qu'il y a jusqu'à 35 opérations pour la
+taille du tableau
+int graph[MAX_OPERATIONS][MAX_OPERATIONS];
+int visited[MAX_OPERATIONS];
+int station[MAX_OPERATIONS];
+int operationExists[MAX_OPERATIONS];
+void initializeGraphAndStations() {
+memset(graph, 0, sizeof(graph));
+memset(visited, 0, sizeof(visited));
+memset(station, 0, sizeof(station));
+memset(operationExists, 0, sizeof(operationExists)); // Initialiser tous les indicateurs
+d'existence d'opération à 0
+}
+void addExclusion(int op1, int op2) {
+graph[op1][op2] = 1;
+graph[op2][op1] = 1; // Le graphe est non orienté
+operationExists[op1] = 1; // Marquer l'opération comme existante
+operationExists[op2] = 1; // Marquer l'opération comme existante
+}
+int canBeAssignedToStation(int op, int st) {
+for (int i = 1; i < MAX_OPERATIONS; i++) {
+if (station[i] == st && graph[op][i]) {
+return 0; // Ne peut pas être assignée à cause de la contrainte d'exclusion
+}
+}
+return 1; // Peut être assignée
+}
+void dfs(int currentOp, int currentStation) {
+visited[currentOp] = 1;
+station[currentOp] = currentStation;
+printf("Operation %d is assigned to station %d\n", currentOp, currentStation);
