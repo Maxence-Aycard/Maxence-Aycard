@@ -19,7 +19,7 @@ return EXIT_FAILURE;
 
 
 while (fscanf(operationsFile, "%d %f", &operations[operation_count].operation_id,
-&operations[operation_count].time) == 2) {
+&operations[operation_count].time) == 1) {
 operation_count++;
 }
 fclose(operationsFile);
