@@ -38,7 +38,7 @@ fclose(cycleTimeFile);
 
 printf("Temps de cycle: %.2f\n", cycle_time);
 printf("Opérations lues:\n");
-for (i = 0; i < operation_count; i++) {
+for (i = 0; i < operation_count; i+) {
 printf("Opération %d: %.2f s\n", operations[i].operation_id, operations[i].time);
 }
 
