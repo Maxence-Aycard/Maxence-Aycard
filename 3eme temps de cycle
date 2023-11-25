@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int op_id;
+    float op_time;
+} Operation;
+
+int main() {
+    FILE *opFile, *cycleTimeFile;
+    Operation ops[100]; // Faire une supposition raisonnable sur la taille maximale
+    int op_count = 0;
+    float cycle_time;
+    int i;
+
+    opFile = fopen("operations.txt", "r");
+    if (opFile == NULL) {
+        perror("Erreur lors de l'ouverture du fichier des opérations");
+        return EXIT_FAILURE;
+    }
+
+    while (fscanf(opFile, "%d %f", &ops[op_count].op_id, &ops[op_count].op_time) == 2) {
+        op_count++;
+    }
+    fclose(opFile);
+
+    cycleTimeFile = fopen("temps_de_cycles.txt", "r");
+    if (cycleTimeFile == NULL) {
+        perror("Erreur lors de l'ouverture du fichier du temps de cycle");
+        return EXIT_FAILURE;
+    }
+
+    if (fscanf(cycleTimeFile, "%f", &cycle_time) != 1) {
+        perror("Erreur lors de la lecture du temps de cycle");
+        return EXIT_FAILURE;
+    }
+    fclose(cycleTimeFile);
+
+    printf("Temps de cycle: %.2f\n", cycle_time);
+    printf("Opérations lues:\n");
+    for (i = 0; i < op_count; i++) {
+        printf("Opération %d: %.2f s\n", ops[i].op_id, ops[i].op_time);
+    }
+
+    printf("\nRépartition des opérations sur les stations de travail:\n");
+    float cur_time = 0;
+    int station_num = 1;
+    printf("Station %d: ", station_num);
+    for (i = 0; i < op_count; i++) {
+        if (cur_time + ops[i].op_time <= cycle_time) {
+            printf("Opération %d (%.2f s) ", ops[i].op_id, ops[i].op_time);
+            cur_time += ops[i].op_time;
+        } else {
+            printf("\nStation %d: ", ++station_num);
+            cur_time = ops[i].op_time;
+            printf("Opération %d (%.2f s) ", ops[i].op_id, ops[i].op_time);
+        }
+    }
+    return EXIT_SUCCESS;
+}
