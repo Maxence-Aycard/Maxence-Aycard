@@ -1,0 +1,167 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_OPERATIONS 100
+#define MAX_NODES 100
+
+typedef struct {
+    int id_operation;
+    float temps;
+    int station; // Ajout d'un champ pour la station
+} Operation;
+
+int nb_noeuds = 0;
+int adjacence[MAX_NODES][MAX_NODES];
+int degres_entrants[MAX_NODES];
+int file[MAX_NODES];
+int ordre[MAX_NODES];
+int exclusion[MAX_OPERATIONS][MAX_OPERATIONS];
+float temps_cycle;
+Operation operations[MAX_OPERATIONS];
+int nb_operations = 0;
+
+void lireGrapheDepuisFichier(const char *nomFichier) {
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        perror("Erreur lors de l'ouverture du fichier");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < MAX_NODES; i++) {
+        degres_entrants[i] = -1;
+    }
+
+    int de, vers;
+    while (fscanf(fichier, "%d %d", &de, &vers) == 2) {
+        if (degres_entrants[de] == -1) degres_entrants[de] = 0;
+        if (degres_entrants[vers] == -1) degres_entrants[vers] = 0;
+        adjacence[de][vers] = 1;
+        degres_entrants[vers]++;
+        if (de > nb_noeuds) nb_noeuds = de;
+        if (vers > nb_noeuds) nb_noeuds = vers;
+    }
+
+    fclose(fichier);
+}
+
+void lireExclusions(const char *nomFichier) {
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        perror("Erreur lors de l'ouverture du fichier d'exclusion");
+        exit(EXIT_FAILURE);
+    }
+
+    int op1, op2;
+    while (fscanf(fichier, "%d %d", &op1, &op2) == 2) {
+        exclusion[op1][op2] = 1;
+        exclusion[op2][op1] = 1;
+    }
+
+    fclose(fichier);
+}
+
+void triTopologique() {
+    int debut = 0, fin = -1;
+    int compteur = 0; // Compteur de noeuds traites
+
+    for (int i = 0; i < MAX_NODES; i++) {
+        ordre[i] = -1;
+    }
+
+    for (int i = 1; i <= nb_noeuds; i++) {
+        if (degres_entrants[i] == 0) {
+            file[++fin] = i;
+        }
+    }
+
+    while (debut <= fin) {
+        int courant = file[debut++];
+        ordre[compteur++] = courant;
+
+        for (int i = 1; i <= nb_noeuds; i++) {
+            if (adjacence[courant][i] == 1) {
+                if (--degres_entrants[i] == 0) {
+                    file[++fin] = i;
+                }
+            }
+        }
+    }
+}
+
+void lireOperationsEtTempsCycle(const char *fichierOperations, const char *fichierTempsCycle) {
+    FILE *fop = fopen(fichierOperations, "r");
+    if (fop == NULL) {
+        perror("Erreur lors de l'ouverture du fichier des operations");
+        exit(EXIT_FAILURE);
+    }
+
+    int id;
+    float temps;
+    while (fscanf(fop, "%d %f", &id, &temps) == 2) {
+        operations[nb_operations].id_operation = id;
+        operations[nb_operations].temps = temps;
+        nb_operations++;
+    }
+    fclose(fop);
+
+    FILE *ftc = fopen(fichierTempsCycle, "r");
+    if (ftc == NULL) {
+        perror("Erreur lors de l'ouverture du fichier du temps de cycle");
+        exit(EXIT_FAILURE);
+    }
+
+    if (fscanf(ftc, "%f", &temps_cycle) != 1) {
+        perror("Erreur lors de la lecture du temps de cycle");
+        fclose(ftc);
+        exit(EXIT_FAILURE);
+    }
+    fclose(ftc);
+}
+
+int operationPeutEtreAssignee(int idOp, int stationActuelle) {
+    for (int i = 0; i < nb_operations; i++) {
+        if (exclusion[idOp][operations[i].id_operation] && operations[i].station == stationActuelle) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void assignerOperationsAuxStations() {
+    int stationActuelle = 1;
+    float tempsActuel = 0;
+
+    for (int i = 0; i < nb_noeuds; i++) {
+        if (ordre[i] == -1) continue;
+
+        for (int j = 0; j < nb_operations; j++) {
+            if (operations[j].id_operation == ordre[i]) {
+                if (tempsActuel + operations[j].temps <= temps_cycle && operationPeutEtreAssignee(operations[j].id_operation, stationActuelle)) {
+                    operations[j].station = stationActuelle;
+                    tempsActuel += operations[j].temps;
+                } else {
+                    stationActuelle++;
+                    tempsActuel = operations[j].temps;
+                    operations[j].station = stationActuelle;
+                }
+                break;
+            }
+        }
+    }
+}
+
+int main() {
+    lireGrapheDepuisFichier("precedence.txt");
+    lireExclusions("exclusions.txt");
+    lireOperationsEtTempsCycle("operations.txt", "temps_de_cycles.txt");
+
+    triTopologique();
+    assignerOperationsAuxStations();
+
+    for (int i = 0; i < nb_operations; i++) {
+        printf("Operation %d assignee a la Station %d\n", operations[i].id_operation, operations[i].station);
+    }
+
+    return 0;
+}
