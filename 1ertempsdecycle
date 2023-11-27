@@ -7,7 +7,7 @@ int main() {
     float temps;
     float temps_total = 0.0;
 
-    fichier = fopen("operation.txt", "r");
+    fichier = fopen("ope.txt", "r");
 
     if (fichier == NULL) {
         printf("Impossible d'ouvrir le fichier.\n");
