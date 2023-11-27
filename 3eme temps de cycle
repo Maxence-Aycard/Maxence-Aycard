@@ -5,6 +5,8 @@ typedef struct {
     int op_id;
     float op_time;
 } Operation;
+retrun;
+}
 
 int main() {
     FILE *opFile, *cycleTimeFile;
