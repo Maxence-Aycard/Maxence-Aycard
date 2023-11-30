@@ -19,7 +19,7 @@ int main() {
     if (opFile == NULL) {
         perror("Erreur lors de l'ouverture du fichier des opérations");
         return EXIT_FAILURE;
-    }
+    } // temps de cycle
 
     while (fscanf(opFile, "%d %f", &ops[op_count].op_id, &ops[op_count].op_time) == 2) {
         op_count++;
