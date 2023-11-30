@@ -10,39 +10,38 @@ Operation operations[100]; // Faire une supposition raisonnable sur la taille ma
 int operation_count = 0;
 float cycle_time;
 int i;
-// Ouvrir le fichier des temps d'opérations
+
 operationsFile = fopen("operations.txt", "r");
 if (operationsFile == NULL) {
 perror("Erreur lors de l'ouverture du fichier des opérations");
 return EXIT_FAILURE;
 }
-// Lire les données des opérations
+
 
 while (fscanf(operationsFile, "%d %f", &operations[operation_count].operation_id,
 &operations[operation_count].time) == 2) {
 operation_count++;
 }
 fclose(operationsFile);
-// Ouvrir le fichier du temps de cycle
+
 cycleTimeFile = fopen("temps_de_cycles.txt", "r");
 if (cycleTimeFile == NULL) {
 perror("Erreur lors de l'ouverture du fichier du temps de cycle");
 return EXIT_FAILURE;
 }
-// Lire le temps de cycle
+
 if (fscanf(cycleTimeFile, "%f", &cycle_time) != 1) {
 perror("Erreur lors de la lecture du temps de cycle");
 return EXIT_FAILURE;
 }
 fclose(cycleTimeFile);
-// Affichage pour vérification
+
 printf("Temps de cycle: %.2f\n", cycle_time);
 printf("Opérations lues:\n");
 for (i = 0; i < operation_count; i++) {
 printf("Opération %d: %.2f s\n", operations[i].operation_id, operations[i].time);
 }
-// Ici, nous devons implémenter l'algorithme d'équilibrage de ligne.
-// Cela est simplifié pour des raisons de démonstration. Un algorithme réel serait plus
+
 complexe.
 printf("\nRépartition des opérations sur les stations de travail:\n");
 float current_time = 0;
