@@ -4,7 +4,7 @@
 typedef struct {
     int op_id;
     float op_time;
-} Operation;
+} operation;
 retrun;
 }
 
