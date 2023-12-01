@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Structure pour représenter une arête du graphe
+struct Edge {
+    int src, dest, weight;
+};
+
+// Structure pour représenter un ensemble disjoint (utilisé pour la détection de cycle)
+struct Subset {
+    int parent;
+    int rank;
+};
+
+// Fonction pour trouver le sous-ensemble de l'élément i
+int find(struct Subset subsets[], int i) {
+    if (subsets[i].parent != i)
+        subsets[i].parent = find(subsets, subsets[i].parent);
+
+    return subsets[i].parent;
+}
+
+// Fonction pour effectuer l'union de deux sous-ensembles (union par rang)
+void Union(struct Subset subsets[], int x, int y) {
+    int xroot = find(subsets, x);
+    int yroot = find(subsets, y);
+
+    if (subsets[xroot].rank < subsets[yroot].rank)
+        subsets[xroot].parent = yroot;
+    else if (subsets[xroot].rank > subsets[yroot].rank)
+        subsets[yroot].parent = xroot;
+    else {
+        subsets[yroot].parent = xroot;
+        subsets[xroot].rank++;
+    }
+}
+
+// Fonction de comparaison utilisée pour trier les arêtes par poids croissant
+int compare(const void* a, const void* b) {
+    return ((struct Edge*)a)->weight - ((struct Edge*)b)->weight;
+}
+
+// Fonction principale pour l'algorithme de Kruskal
+void KruskalMST(struct Edge edges[], int V, int E) {
+    // Trier les arêtes par poids croissant
+    qsort(edges, E, sizeof(edges[0]), compare);
+
+    // Allouer de la mémoire pour stocker les sous-ensembles
+    struct Subset* subsets = (struct Subset*)malloc(V * sizeof(struct Subset));
+    if (subsets == NULL) {
+        fprintf(stderr, "Erreur d'allocation de mémoire\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialiser chaque sous-ensemble comme un ensemble disjoint d'un seul élément
+    for (int v = 0; v < V; ++v) {
+        subsets[v].parent = v;
+        subsets[v].rank = 0;
+    }
+
+    // Initialiser l'indice du résultat (sous-arbre couvrant de poids minimal)
+    int resultIndex = 0;
+
+    // Indice utilisé pour parcourir les arêtes triées
+    int i = 0;
+
+    // Construire le sous-arbre couvrant de poids minimal
+    while (resultIndex < V - 1 && i < E) {
+        // Extraire l'arête suivante avec le poids minimum
+        struct Edge next_edge = edges[i++];
+
+        int x = find(subsets, next_edge.src);
+        int y = find(subsets, next_edge.dest);
+
+        // Si l'ajout de cette arête ne forme pas de cycle, l'ajouter au résultat
+        if (x != y) {
+            Union(subsets, x, y);
+            printf("(%d, %d) poids = %d\n", next_edge.src, next_edge.dest, next_edge.weight);
+            resultIndex++;
+        }
+        // Sinon, ignorer cette arête
+    }
+
+    // Libérer la mémoire
+    free(subsets);
+}
+
+// Fonction principale
+int main() {
+    // Exemple de graphe avec 4 nœuds et 5 arêtes
+    int V = 4;
+    int E = 5;
+
+    // Allouer dynamiquement de la mémoire pour le tableau d'arêtes
+    struct Edge* edges = (struct Edge*)malloc(E * sizeof(struct Edge));
+    if (edges == NULL) {
+        fprintf(stderr, "Erreur d'allocation de mémoire\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialiser le tableau d'arêtes
+    edges[0] = (struct Edge){0, 1, 10};
+    edges[1] = (struct Edge){0, 2, 6};
+    edges[2] = (struct Edge){0, 3, 5};
+    edges[3] = (struct Edge){1, 3, 15};
+    edges[4] = (struct Edge){2, 3, 4};
+
+    // Appliquer l'algorithme de Kruskal
+    KruskalMST(edges, V, E);
+
+    // Libérer la mémoire
+    free(edges);
+
+    return 0;
+}
