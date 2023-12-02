@@ -1,0 +1,142 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_OPERATIONS 100
+#define MAX_NOEUD 100
+
+// structure qui représente une opération
+typedef struct {
+    int id_operation;
+    float temps;
+} Operation;
+
+// variables globales
+int n = 0; // Le nombre maximal de nœuds dans le graphe
+int adj[MAX_NOEUD][MAX_NOEUD]; // Matrice d'adjacence pour stocker les arêtes
+int degre_entrant[MAX_NOEUD]; // Tableau pour stocker le degré entrant de chaque nœud
+int file[MAX_NOEUD]; // File pour stocker les nœuds avec un degré entrant de 0 pour le traitement
+int ordre[MAX_NOEUD]; // Tableau pour stocker l'ordre topologique
+
+// Fonction pour lire le graphe à partir d'un fichier
+void lire_graphe_depuis_fichier(const char *nom_fichier) {
+    FILE *fichier = fopen(nom_fichier, "r");
+    if (fichier == NULL) {      // On arrive pas à lire le fichier
+        perror("Erreur lors de l'ouverture du fichier");
+        exit(EXIT_FAILURE);
+    }
+
+    // On initialise le tableau de degrés entrants à -1. Par défaut, un degré entrant de -1 est utilisé pour indiquer qu'aucun degré entrant n'a été assigné au nœud correspondant
+    for (int i = 0; i < MAX_NOEUD; i++) {
+        degre_entrant[i] = -1;
+    }
+
+    int de, a;
+    // On lit les arêtes du fichier et construire la matrice d'adjacence
+    while (fscanf(fichier, "%d %d", &de, &a) == 2) {
+        if (degre_entrant[de] == -1) degre_entrant[de] = 0;   // Si le degré entrant du nœud "de" n'a pas encore été initialisé (-1), on l'initialise à 0.
+        if (degre_entrant[a] == -1) degre_entrant[a] = 0;   // Pareil pour "a"
+        adj[de][a] = 1; // Il y a une arête de "de" à "a"
+        degre_entrant[a]++;
+        if (de > n) n = de;    // Met à jour la valeur maximale de nœuds
+        if (a > n) n = a;
+    }
+
+    fclose(fichier);
+}
+
+// On réalise le tri topologique du graphe => Pour déterminer un ordre d'exécution valide des opérations dans un graphe acyclique orienté
+void tri_topologique() {
+    int debut = 0, fin = -1;
+    int compteur = 0; // Compteur de nœuds traités
+
+    // Initialiser le tableau d'ordre topologique à -1
+    for (int i = 0; i < MAX_NOEUD; i++) {
+        ordre[i] = -1;
+    }
+
+    // Ajouter les nœuds avec un degré entrant de 0 à la file
+    for (int i = 1; i <= n; i++) {
+        if (degre_entrant[i] == 0) {  // si le nœud i a un degré entrant égal à zéro.
+            file[++fin] = i;  // On ajoute le nœud 'i' à la file pour traitement ultérieur, car il n'a plus de dépendances entrantes
+        }
+    }
+
+    // Parcourir la file et mettre à jour les degrés entrants
+    while (debut <= fin) {
+        int courant = file[debut++];
+        ordre[compteur++] = courant;
+
+        // Mettre à jour les degrés entrants des nœuds voisins
+        for (int i = 1; i <= n; i++) {
+            if (adj[courant][i] == 1) {    // Le nœud 'i' est un voisin du nœud 'courant', indiquant une dépendance directe
+                if (--degre_entrant[i] == 0) {  // // Si le décrément du degré entrant de 'i' le rend égal à zéro, cela signifie que toutes les dépendances de 'i' ont été traitées
+                    file[++fin] = i;
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    FILE *fichier_operations, *fichier_temps_cycle;
+    Operation operations[MAX_OPERATIONS];
+    int compte_operations = 0;
+    float temps_cycle;
+    int i, j;
+
+    //On lit le graphe depuis le fichier "precedence.txt" et effectuer le tri topologique
+    lire_graphe_depuis_fichier("precedence.txt");
+    tri_topologique();
+
+    // Puis on lit les détails des opérations depuis le fichier "operations.txt"
+    fichier_operations = fopen("operations.txt", "r");
+    if (fichier_operations == NULL) {
+        perror("Erreur lors de l'ouverture du fichier des opérations");
+        return EXIT_FAILURE;
+    }
+
+    while (fscanf(fichier_operations, "%d %f", &operations[compte_operations].id_operation, &operations[compte_operations].temps) == 2) {
+        compte_operations++;
+    }
+    fclose(fichier_operations);
+
+    // Lire le temps de cycle depuis le fichier "temps_de_cycles.txt"
+    fichier_temps_cycle = fopen("temps_de_cycles.txt", "r");
+    if (fichier_temps_cycle == NULL) {
+        perror("Erreur lors de l'ouverture du fichier du temps de cycle");
+        return EXIT_FAILURE;
+    }
+
+    if (fscanf(fichier_temps_cycle, "%f", &temps_cycle) != 1) {
+        perror("Erreur lors de la lecture du temps de cycle");
+        return EXIT_FAILURE;
+    }
+    fclose(fichier_temps_cycle);
+
+    // On affiche les stations optimisées basées sur le temps de cycle et la précédence
+    printf("Stations optimisées basées sur le temps de cycle et la précédence :\n");
+    int station_actuelle = 1;
+    float temps_actuel = 0;
+
+    // On parcours les nœuds dans l'ordre topologique
+    for (i = 0; i < n; i++) {
+        if (ordre[i] == -1) continue; // => Ignorer si ce n'est pas une opération valide
+        // on trouve l'opération correspondante dans le tableau d'opérations
+        for (j = 0; j < compte_operations; j++) {
+            if (operations[j].id_operation == ordre[i]) {
+                // Assigner l'opération à une station en respectant le temps de cycle
+                if (temps_actuel + operations[j].temps <= temps_cycle) {
+                    printf("Station %d: Opération %d (%.2f s)\n", station_actuelle, operations[j].id_operation, operations[j].temps);
+                    temps_actuel += operations[j].temps;
+                } else {
+                    station_actuelle++;
+                    temps_actuel = operations[j].temps;
+                    printf("Station %d: Opération %d (%.2f s)\n", station_actuelle, operations[j].id_operation, operations[j].temps);
+                }
+                break;
+            }
+        }
+    }
+
+    return 0;
+}
